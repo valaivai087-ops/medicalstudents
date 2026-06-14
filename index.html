@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>醫學生超級OS — Medical Super Operating System</title>
+<style>
+:root{
+  --bg:#F5F7FA;--bg2:#FFFFFF;--bg3:#EEF1F7;--bg4:#F0F4FF;
+  --surface:#FFFFFF;--surface2:#F7F9FC;
+  --border:#DDE3EE;--border2:#C5CFE0;
+  --blue:#1B5FD6;--blue2:#1447B0;--blue-l:#E8F0FE;--blue-ll:#F0F4FF;
+  --teal:#0B8FAC;--teal-l:#E0F5F9;
+  --green:#0A8A5C;--green-l:#E6F6EF;
+  --red:#D13025;--red-l:#FCE8E6;
+  --orange:#C96A00;--orange-l:#FEF3E2;
+  --purple:#6B21A8;--purple-l:#F5F0FF;
+  --gold:#A67700;--gold-l:#FFF8E1;
+  --navy:#1A2C5B;
+  --text:#0D1520;--text2:#3A4A60;--text3:#6A7A90;--text4:#A0AABB;
+  --font:'Segoe UI','Microsoft JhengHei',Arial,sans-serif;
+  --r:10px;--r2:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+
+/* ── Shell ── */
+.shell{display:flex;height:100vh;overflow:hidden;}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:236px;background:var(--navy);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;z-index:100;
+}
+.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);}
+.logo-area{
+  padding:20px 16px 16px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.logo-main{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px;}
+.logo-en{font-size:10px;color:rgba(255,255,255,.5);margin-top:3px;letter-spacing:.5px;}
+.logo-tag{
+  display:inline-block;margin-top:10px;padding:3px 10px;
+  background:rgba(255,255,255,.12);border-radius:20px;
+  font-size:10px;color:rgba(255,255,255,.8);font-weight:600;
+}
+.nav-group{padding:8px 0;}
+.nav-label{
+  font-size:9px;color:rgba(255,255,255,.35);letter-spacing:2px;
+  text-transform:uppercase;padding:7px 16px 3px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;
+  font-size:12.5px;color:rgba(255,255,255,.6);transition:all .15s;
+  border-left:3px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+.nav-item.active{
+  background:rgba(255,255,255,.12);color:#fff;
+  border-left-color:#60A5FA;font-weight:600;
+}
+.nav-icon{font-size:15px;width:18px;text-align:center;}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;background:var(--bg);}
+
+/* ── Topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:12px 26px;display:flex;align-items:center;justify-content:space-between;
+}
+.tb-title{font-size:16px;font-weight:800;color:var(--text);}
+.tb-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.chip{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;
+  background:var(--blue-l);color:var(--blue2);border:1px solid rgba(27,95,214,.15);
+}
+.chip-g{background:var(--green-l);color:var(--green);border-color:rgba(10,138,92,.15);}
+.chip-o{background:var(--orange-l);color:var(--orange);border-color:rgba(201,106,0,.15);}
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:white;cursor:pointer;
+}
+
+/* ── Content ── */
+.content{padding:24px;display:none;}
+.content.active{display:block;}
+
+/* ── Section ── */
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.st{font-size:21px;font-weight:800;color:var(--text);}
+.ss{font-size:12.5px;color:var(--text3);margin-top:3px;}
+
+/* ── Grid ── */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.row{display:flex;gap:14px;}
+.col{flex:1;}
+
+/* ── Stat card ── */
+.stat{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);
+  padding:16px 18px;display:flex;align-items:center;gap:14px;
+}
+.stat-ico{
+  width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.stat-num{font-size:24px;font-weight:900;line-height:1;}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;}
+.stat-d{font-size:10px;font-weight:600;margin-top:3px;}
+
+/* ── Box ── */
+.box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:18px;margin-bottom:14px;
+}
+.box-t{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* ── Module card ── */
+.mod-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);
+  padding:18px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;
+  border-top:3px solid var(--mc,var(--blue));
+}
+.mod-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.09);}
+.mod-card.open{box-shadow:0 0 0 2px var(--mc,var(--blue));}
+.mod-num{font-size:10px;font-weight:700;color:var(--mc,var(--blue));letter-spacing:1px;margin-bottom:6px;}
+.mod-icon{font-size:24px;margin-bottom:8px;}
+.mod-name{font-size:14px;font-weight:800;margin-bottom:4px;}
+.mod-desc{font-size:11.5px;color:var(--text3);line-height:1.5;}
+.mod-tag{
+  position:absolute;top:12px;right:12px;padding:2px 8px;
+  border-radius:10px;font-size:9px;font-weight:700;
+  background:var(--orange-l);color:var(--orange);
+}
+
+/* ── Module detail ── */
+.mod-detail{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;margin-bottom:16px;display:none;
+}
+.mod-detail.show{display:block;}
+.md-head{padding:18px 22px;border-bottom:1px solid var(--border);}
+.md-title{font-size:17px;font-weight:800;margin-bottom:4px;}
+.md-sub{font-size:12px;color:var(--text3);}
+.md-body{padding:20px 22px;}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px;}
+.tbl th{
+  background:var(--bg3);padding:9px 13px;text-align:left;
+  font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:2px solid var(--border2);
+}
+.tbl td{padding:10px 13px;border-bottom:1px solid var(--border);color:var(--text2);}
+.tbl tr:hover td{background:var(--bg3);}
+.tbl tr:last-child td{border-bottom:none;}
+
+/* ── Prog ── */
+.pbar{background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-top:4px;}
+.pfill{height:100%;border-radius:4px;}
+.p-blue{background:linear-gradient(90deg,var(--blue2),var(--blue));}
+.p-green{background:linear-gradient(90deg,#0A7A50,var(--green));}
+.p-orange{background:linear-gradient(90deg,#B05A00,var(--orange));}
+.p-red{background:linear-gradient(90deg,var(--red),#F44336);}
+.p-purple{background:linear-gradient(90deg,#5B21B6,var(--purple));}
+.p-teal{background:linear-gradient(90deg,#0A7A8A,var(--teal));}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-p{background:var(--blue);color:white;}
+.btn-p:hover{background:var(--blue2);}
+.btn-o{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-o:hover{border-color:var(--blue);color:var(--blue);}
+.btn-g{background:var(--green);color:white;}
+.btn-navy{background:var(--navy);color:white;}
+
+/* ── Alerts ── */
+.alert{padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:10px;display:flex;align-items:flex-start;gap:9px;line-height:1.5;}
+.a-b{background:var(--blue-l);border:1px solid rgba(27,95,214,.15);color:var(--blue2);}
+.a-g{background:var(--green-l);border:1px solid rgba(10,138,92,.15);color:var(--green);}
+.a-o{background:var(--orange-l);border:1px solid rgba(201,106,0,.15);color:var(--orange);}
+.a-r{background:var(--red-l);border:1px solid rgba(209,48,37,.15);color:var(--red);}
+.a-p{background:var(--purple-l);border:1px solid rgba(107,33,168,.15);color:var(--purple);}
+.a-gold{background:var(--gold-l);border:1px solid rgba(166,119,0,.2);color:var(--gold);}
+
+/* ── Formula ── */
+.formula{
+  background:linear-gradient(135deg,#EEF3FF,#F4F0FF);border:1px solid rgba(27,95,214,.15);
+  border-radius:10px;padding:14px 18px;text-align:center;margin:12px 0;
+  font-size:13px;color:var(--blue2);font-weight:700;line-height:1.7;
+}
+.formula-gold{
+  background:var(--gold-l);border-color:rgba(166,119,0,.2);color:var(--gold);
+}
+
+/* ── Mnemonic ── */
+.mnem{
+  background:var(--gold-l);border:1px solid rgba(166,119,0,.2);
+  border-radius:10px;padding:13px 16px;margin:10px 0;
+}
+.mnem-t{font-size:9px;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;}
+.mnem-c{font-size:13px;color:var(--text);line-height:1.7;font-weight:600;}
+
+/* ── Flow chain ── */
+.flow{display:flex;flex-direction:column;}
+.fnode{display:flex;align-items:flex-start;gap:13px;position:relative;}
+.fnode::before{content:'';position:absolute;left:14px;top:32px;bottom:-8px;width:1px;background:var(--border2);}
+.fnode:last-child::before{display:none;}
+.fdot{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;z-index:1;border:2px solid;
+}
+.fcontent{padding-bottom:16px;flex:1;}
+.ftitle{font-size:13px;font-weight:700;margin-bottom:3px;}
+.fdesc{font-size:12px;color:var(--text2);line-height:1.55;}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tab{
+  padding:9px 16px;font-size:13px;font-weight:600;color:var(--text3);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-2px;
+}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab:hover{color:var(--text);}
+.tab-c{display:none;}
+.tab-c.active{display:block;}
+
+/* ── Pills ── */
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.pill{
+  padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  background:var(--surface);border:1px solid var(--border);color:var(--text2);transition:all .15s;
+}
+.pill.active,.pill:hover{background:var(--blue-l);border-color:rgba(27,95,214,.25);color:var(--blue);}
+
+/* ── Know tags ── */
+.ktag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;margin:2px;}
+.kb{background:var(--blue-l);color:var(--blue2);}
+.kg{background:var(--green-l);color:var(--green);}
+.ko{background:var(--orange-l);color:var(--orange);}
+.kr{background:var(--red-l);color:var(--red);}
+.kp{background:var(--purple-l);color:var(--purple);}
+.kt{background:var(--teal-l);color:var(--teal);}
+
+/* ── Timeline ── */
+.timeline{display:flex;gap:0;margin-bottom:18px;}
+.tl-item{
+  flex:1;background:var(--surface);border:1px solid var(--border);
+  border-right:none;padding:14px 12px;text-align:center;cursor:pointer;transition:all .15s;
+}
+.tl-item:first-child{border-radius:10px 0 0 10px;}
+.tl-item:last-child{border-radius:0 10px 10px 0;border-right:1px solid var(--border);}
+.tl-item.active{background:var(--blue);border-color:var(--blue);color:white;}
+.tl-item.current{background:var(--orange-l);border-color:rgba(201,106,0,.3);}
+.tl-yr{font-size:11px;font-weight:800;margin-bottom:5px;}
+.tl-txt{font-size:10px;line-height:1.4;}
+
+/* ── Ability pyramid ── */
+.pyramid{display:flex;flex-direction:column;gap:6px;align-items:center;margin:14px 0;}
+.plevel{
+  display:flex;align-items:center;gap:12px;padding:11px 20px;border-radius:9px;
+  width:100%;max-width:520px;cursor:default;transition:all .18s;
+}
+.plevel:hover{transform:translateX(4px);}
+.pl-num{font-size:12px;font-weight:800;width:22px;text-align:center;flex-shrink:0;}
+.pl-en{font-size:10px;color:var(--text4);width:90px;flex-shrink:0;}
+.pl-zh{font-size:14px;font-weight:700;flex:1;}
+.pl-desc{font-size:11px;color:var(--text3);}
+
+/* ── AI Chat ── */
+.chat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px;}
+.chat-head{
+  padding:13px 18px;background:var(--bg3);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;
+}
+.dot-g{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(10,138,92,.4);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.chat-msgs{padding:16px;min-height:160px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;}
+.msg{display:flex;gap:9px;animation:fi .25s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.msg.u{flex-direction:row-reverse;}
+.mbubble{max-width:75%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55;}
+.msg.ai .mbubble{background:var(--bg3);border:1px solid var(--border);color:var(--text);}
+.msg.u .mbubble{background:var(--blue);color:white;}
+.mavatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px;}
+.msg.ai .mavatar{background:var(--bg3);border:1px solid var(--border);}
+.msg.u .mavatar{background:var(--blue);color:white;font-size:11px;}
+.chat-in-row{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--border);background:var(--bg3);}
+.chat-in{
+  flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;
+  padding:9px 13px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;
+}
+.chat-in:focus{border-color:var(--blue);}
+.chat-in::placeholder{color:var(--text4);}
+
+/* ── AI Teachers ── */
+.t-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px;}
+.t-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;text-align:center;cursor:pointer;transition:all .18s;
+}
+.t-card:hover,.t-card.on{border-color:var(--blue);background:var(--blue-l);}
+.t-emoji{font-size:24px;margin-bottom:6px;}
+.t-name{font-size:12px;font-weight:700;}
+.t-role{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ── Bar chart ── */
+.barchart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:10px;}
+.bg{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height .5s;}
+.blbl{font-size:9px;color:var(--text3);text-align:center;}
+.bval{font-size:10px;font-weight:700;}
+
+/* ── Leaderboard ── */
+.lb{display:flex;flex-direction:column;gap:7px;}
+.lbi{display:flex;align-items:center;gap:11px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:9px;font-size:13px;}
+.lbrank{width:22px;font-size:13px;text-align:center;font-weight:800;color:var(--text3);}
+.lbname{flex:1;font-weight:600;}
+.lbbadge{font-size:10px;padding:2px 7px;background:var(--bg3);border-radius:8px;color:var(--text3);}
+.lbscore{color:var(--blue);font-weight:700;font-size:12px;}
+
+/* ── Quiz ── */
+.qbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px;}
+.qlbl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;}
+.qtext{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:16px;}
+.qopts{display:flex;flex-direction:column;gap:8px;}
+.qopt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text2);}
+.qopt:hover{border-color:var(--blue);background:var(--blue-l);}
+.qopt.right{border-color:var(--green);background:var(--green-l);color:var(--green);}
+.qopt.wrong{border-color:var(--red);background:var(--red-l);color:var(--red);}
+.okey{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:var(--text3);}
+.qexp{margin-top:12px;padding:14px 16px;background:var(--blue-l);border:1px solid rgba(27,95,214,.15);border-radius:10px;font-size:13px;color:var(--text);line-height:1.65;display:none;}
+.qexp.show{display:block;}
+
+/* ── Flashcard ── */
+.fc-wrap{perspective:800px;margin-bottom:14px;}
+.fc{width:100%;max-width:520px;margin:0 auto;height:190px;position:relative;transform-style:preserve-3d;transition:transform .5s;cursor:pointer;}
+.fc.flip{transform:rotateY(180deg);}
+.fcface{position:absolute;inset:0;background:var(--surface);border:2px solid var(--border);border-radius:16px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;}
+.fcback{background:linear-gradient(135deg,#EEF3FF,#EBF0FF);border-color:rgba(27,95,214,.3);transform:rotateY(180deg);}
+.fclbl{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;}
+.fcword{font-size:25px;font-weight:900;margin-bottom:6px;}
+.fchint{font-size:12px;color:var(--text3);}
+.fcanswer{font-size:13px;line-height:1.7;}
+.fcbtns{display:flex;gap:10px;justify-content:center;margin-top:12px;}
+.fcbtn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.fca{background:var(--red-l);color:var(--red);border:1px solid rgba(209,48,37,.2);}
+.fcb{background:var(--orange-l);color:var(--orange);border:1px solid rgba(201,106,0,.2);}
+.fcc{background:var(--blue);color:white;}
+
+/* ── PBL ── */
+.pbl-case{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px;}
+.pbl-head{background:linear-gradient(135deg,var(--navy),#1A3A6B);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+.pbl-pt{display:flex;align-items:center;gap:12px;}
+.pbl-av{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.pbl-nm{font-size:14px;font-weight:700;color:white;}
+.pbl-info{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;}
+.pbl-body{padding:18px 20px;}
+.pbl-sec{margin-bottom:14px;}
+.pbl-sectl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.pbl-sectl::after{content:'';flex:1;height:1px;background:var(--border);}
+.stags{display:flex;flex-wrap:wrap;gap:6px;}
+.stag{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;}
+.sr{background:var(--red-l);color:var(--red);border:1px solid rgba(209,48,37,.2);}
+.sb{background:var(--blue-l);color:var(--blue2);border:1px solid rgba(27,95,214,.15);}
+.so{background:var(--orange-l);color:var(--orange);border:1px solid rgba(201,106,0,.15);}
+.sg{background:var(--green-l);color:var(--green);border:1px solid rgba(10,138,92,.15);}
+.ddxlist{display:flex;flex-direction:column;gap:7px;}
+.ddxi{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border-radius:8px;font-size:12px;border:1px solid var(--border);}
+.ddxbar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.ddxfill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue2),var(--blue));}
+
+/* ── Career map ── */
+.career-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.career-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;border-left:4px solid var(--cc,var(--blue));
+}
+.cc-stage{font-size:10px;font-weight:700;color:var(--cc,var(--blue));letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.cc-title{font-size:14px;font-weight:800;margin-bottom:6px;}
+.cc-items{font-size:12px;color:var(--text2);line-height:1.8;}
+
+/* ── Vitality ── */
+.vital-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.vital-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;text-align:center;
+}
+.vital-icon{font-size:28px;margin-bottom:8px;}
+.vital-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+.vital-val{font-size:22px;font-weight:900;margin-bottom:4px;}
+.vital-status{font-size:11px;color:var(--text3);}
+
+/* ── System diagram ── */
+.sys-diagram{display:flex;align-items:stretch;gap:0;margin-bottom:16px;overflow-x:auto;}
+.sys-node{
+  flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);
+  border-right:none;padding:14px 10px;text-align:center;position:relative;
+}
+.sys-node:first-child{border-radius:10px 0 0 10px;}
+.sys-node:last-child{border-radius:0 10px 10px 0;border-right:1px solid var(--border);}
+.sys-node::after{
+  content:'→';position:absolute;right:-10px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:var(--text3);background:var(--surface);z-index:1;
+  width:18px;text-align:center;
+}
+.sys-node:last-child::after{display:none;}
+.sn-icon{font-size:22px;margin-bottom:6px;}
+.sn-name{font-size:11px;font-weight:700;}
+.sn-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ── Divider ── */
+.div{height:1px;background:var(--border);margin:18px 0;}
+
+/* ── Misc ── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.fw7{font-weight:700;}.fw8{font-weight:800;}.fw9{font-weight:900;}
+.text-b{color:var(--blue2);}.text-g{color:var(--green);}.text-r{color:var(--red);}
+.text-o{color:var(--orange);}.text-p{color:var(--purple);}.text-t{color:var(--teal);}
+.text-m{color:var(--text3);}.text-gold{color:var(--gold);}
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.ldots::after{content:'...';animation:ld 1.5s steps(3,end) infinite;}
+@keyframes ld{0%{content:'.';}33%{content:'..';}66%{content:'...'}}
+b{color:var(--text);}
+
+@media(max-width:800px){
+  .sidebar{width:0;overflow:hidden;}
+  .g4,.t-grid{grid-template-columns:repeat(2,1fr);}
+  .g3,.career-grid,.vital-grid{grid-template-columns:1fr;}
+  .timeline{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-main">⚕ 醫學生超級OS</div>
+    <div class="logo-en">Medical Super Operating System</div>
+    <div class="logo-tag">第二大腦 · 全生命週期</div>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">核心總覽</div>
+      <div class="nav-item active" onclick="go('home')"><span class="nav-icon">🏠</span>系統總覽</div>
+      <div class="nav-item" onclick="go('curriculum')"><span class="nav-icon">📅</span>六年課程地圖</div>
+      <div class="nav-item" onclick="go('ability')"><span class="nav-icon">🔺</span>七層能力金字塔</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">學習引擎</div>
+      <div class="nav-item" onclick="go('english')"><span class="nav-icon">🔤</span>醫學英文OS</div>
+      <div class="nav-item" onclick="go('memory')"><span class="nav-icon">🧠</span>超級記憶OS</div>
+      <div class="nav-item" onclick="go('exam')"><span class="nav-icon">📋</span>考試OS</div>
+      <div class="nav-item" onclick="go('disease')"><span class="nav-icon">🗺</span>疾病地圖OS</div>
+      <div class="nav-item" onclick="go('pbl')"><span class="nav-icon">🔬</span>PBL推理OS</div>
+      <div class="nav-item" onclick="go('decision')"><span class="nav-icon">⚡</span>臨床決策OS</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">身心系統</div>
+      <div class="nav-item" onclick="go('anxiety')"><span class="nav-icon">🧘</span>焦慮工程OS</div>
+      <div class="nav-item" onclick="go('resilience')"><span class="nav-icon">💪</span>韌性工程OS</div>
+      <div class="nav-item" onclick="go('vitality')"><span class="nav-icon">⚡</span>生命力OS</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">進階系統</div>
+      <div class="nav-item" onclick="go('research')"><span class="nav-icon">📊</span>醫學研究OS</div>
+      <div class="nav-item" onclick="go('comm')"><span class="nav-icon">💬</span>醫病溝通OS</div>
+      <div class="nav-item" onclick="go('career')"><span class="nav-icon">🗺</span>職涯導航OS</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">AI系統</div>
+      <div class="nav-item" onclick="go('ai')"><span class="nav-icon">🤖</span>五大AI引擎</div>
+      <div class="nav-item" onclick="go('dashboard')"><span class="nav-icon">📊</span>六大儀表板</div>
+    </div>
+  </nav>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+<div class="topbar">
+  <div>
+    <div class="tb-title" id="tb-title">🏠 醫學生超級OS — 系統總覽</div>
+    <div class="tb-sub" id="tb-sub">從18歲醫學生到頂尖醫師的全生命週期作業系統</div>
+  </div>
+  <div class="tb-right">
+    <div class="chip">📅 大四第二學期</div>
+    <div class="chip chip-g">能力指數 <b>78%</b></div>
+    <div class="chip chip-o">今日任務 <b>3/5</b></div>
+    <div class="avatar">M</div>
+  </div>
+</div>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="content active" id="page-home">
+  <div class="sh"><div><div class="st">醫學生超級OS</div><div class="ss">把「知識儲存器」升級成「臨床決策系統」</div></div></div>
+
+  <!-- OS定位 -->
+  <div class="alert a-b" style="margin-bottom:16px;font-size:13.5px;">
+    💡 <b>超級OS本質：</b>醫學不是背誦學，醫學是預測學。醫師每天做的事是：<b>資訊不完整 → 建立假設 → 收集證據 → 修正模型 → 做出決策</b>。
+  </div>
+
+  <!-- 核心公式 -->
+  <div class="formula" style="margin-bottom:20px;font-size:15px;">
+    智慧 = 知識力 × 記憶力 × 推理力 × 決策力 × 溝通力 × 生命力
+  </div>
+
+  <!-- Stats -->
+  <div class="g4">
+    <div class="stat"><div class="stat-ico" style="background:var(--blue-l)">📖</div><div><div class="stat-num text-b">78%</div><div class="stat-lbl">知識力指數</div><div class="stat-d text-g">↑ +6% 本月</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--green-l)">🧠</div><div><div class="stat-num text-g">71%</div><div class="stat-lbl">記憶力指數</div><div class="stat-d text-g">↑ +4% 本月</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--orange-l)">🔬</div><div><div class="stat-num text-o">69%</div><div class="stat-lbl">推理力指數</div><div class="stat-d text-o">→ 持平</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--purple-l)">⚡</div><div><div class="stat-num text-p">62%</div><div class="stat-lbl">決策力指數</div><div class="stat-d text-g">↑ +8% 本月</div></div></div>
+  </div>
+
+  <!-- 12大系統快覽 -->
+  <div class="box">
+    <div class="box-t">⚙️ 12大核心系統 — 快速導覽</div>
+    <div class="g4" style="margin-bottom:0">
+      <div class="mod-card" style="--mc:#1B5FD6" onclick="go('english')"><div class="mod-icon">🔤</div><div class="mod-name">醫學英文OS</div><div class="mod-desc">3000單字 · 字根系統 · AI口說</div></div>
+      <div class="mod-card" style="--mc:#0A8A5C" onclick="go('memory')"><div class="mod-icon">🧠</div><div class="mod-name">超級記憶OS</div><div class="mod-desc">Anki引擎 · 遺忘曲線 · 自適應</div><div class="mod-tag">核心</div></div>
+      <div class="mod-card" style="--mc:#C96A00" onclick="go('exam')"><div class="mod-icon">📋</div><div class="mod-name">考試OS</div><div class="mod-desc">考古題分析 · 高頻考點 · 模考</div></div>
+      <div class="mod-card" style="--mc:#0B8FAC" onclick="go('disease')"><div class="mod-icon">🗺</div><div class="mod-name">疾病地圖OS</div><div class="mod-desc">8張系統地圖 · 因果鏈視覺化</div><div class="mod-tag">核心</div></div>
+      <div class="mod-card" style="--mc:#6B21A8" onclick="go('pbl')"><div class="mod-icon">🔬</div><div class="mod-name">PBL推理OS</div><div class="mod-desc">AI病人 · 鑑別診斷 · 案例演練</div></div>
+      <div class="mod-card" style="--mc:#1447B0" onclick="go('decision')"><div class="mod-icon">⚡</div><div class="mod-name">臨床決策OS</div><div class="mod-desc">診斷樹 · 治療路徑 · AI教練</div></div>
+      <div class="mod-card" style="--mc:#6B21A8" onclick="go('anxiety')"><div class="mod-icon">🧘</div><div class="mod-name">焦慮工程OS</div><div class="mod-desc">預測編碼 · 壓力監測 · 認知重建</div></div>
+      <div class="mod-card" style="--mc:#D13025" onclick="go('resilience')"><div class="mod-icon">💪</div><div class="mod-name">韌性工程OS</div><div class="mod-desc">失敗分析 · 反脆弱訓練 · 成長日誌</div></div>
+      <div class="mod-card" style="--mc:#0A8A5C" onclick="go('vitality')"><div class="mod-icon">🔋</div><div class="mod-name">生命力OS</div><div class="mod-desc">睡眠 · 運動 · 營養 · 專注管理</div></div>
+      <div class="mod-card" style="--mc:#0B8FAC" onclick="go('research')"><div class="mod-icon">📊</div><div class="mod-name">醫學研究OS</div><div class="mod-desc">EBM · 統計學 · AI論文助手</div></div>
+      <div class="mod-card" style="--mc:#C96A00" onclick="go('comm')"><div class="mod-icon">💬</div><div class="mod-name">醫病溝通OS</div><div class="mod-desc">標準病人 · 同理心 · 壞消息告知</div></div>
+      <div class="mod-card" style="--mc:#1B5FD6" onclick="go('career')"><div class="mod-icon">🗺</div><div class="mod-name">職涯導航OS</div><div class="mod-desc">PGY · 專科 · 薪資地圖 · 創業</div></div>
+    </div>
+  </div>
+
+  <!-- 終極閉環 -->
+  <div class="box">
+    <div class="box-t">🔄 超級OS核心閉環</div>
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+      <div style="padding:8px 13px;background:var(--blue-l);border:1px solid rgba(27,95,214,.25);border-radius:8px;font-size:12px;color:var(--blue2);font-weight:700;">輸入知識</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">理解結構</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">建立模型</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">Anki記憶</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">案例推理</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">臨床決策</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;">誤差分析</div>
+      <span class="text-m fw7">→</span>
+      <div style="padding:8px 13px;background:var(--green-l);border:1px solid rgba(10,138,92,.25);border-radius:8px;font-size:12px;color:var(--green);font-weight:800;">智慧提升</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="box">
+        <div class="box-t">📅 今日任務</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--green-l);border:1px solid rgba(10,138,92,.15);border-radius:9px;font-size:13px;">
+            <span>🧠</span><div style="flex:1"><div class="fw7 text-g">Anki 複習 47張</div><div class="text-m" style="font-size:11px">已完成 · 耗時28分鐘</div></div><span class="text-g fw7">✓</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;font-size:13px;">
+            <span>🔬</span><div style="flex:1"><div class="fw7">PBL 案例推理 1題</div><div class="text-m" style="font-size:11px">預計20分鐘</div></div><button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="go('pbl')">開始</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;font-size:13px;">
+            <span>📋</span><div style="flex:1"><div class="fw7">考古題 20題（藥理）</div><div class="text-m" style="font-size:11px">預計15分鐘</div></div><button class="btn btn-o" style="padding:5px 12px;font-size:11px" onclick="go('exam')">前往</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <div class="box-t">⚠️ 系統預警</div>
+        <div class="alert a-r">⚡ <b>焦慮指數偏高：</b>近3天睡眠&lt;6h，建議今晚啟動睡眠管理模式</div>
+        <div class="alert a-o">⚡ <b>記憶警告：</b>藥理Anki卡正確率44%，今日優先複習</div>
+        <div class="alert a-b">💡 <b>成長提醒：</b>推理力本月 +12%，持續PBL訓練</div>
+        <div class="alert a-g">✅ <b>突破：</b>疾病地圖糖尿病鏈掌握度達85%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CURRICULUM ══════════════ -->
+<div class="content" id="page-curriculum">
+  <div class="sh"><div><div class="st">📅 六年課程地圖</div><div class="ss">北醫醫學系課程 × 國考對應 × 超級地圖整合</div></div></div>
+
+  <div class="alert a-b">💡 <b>一句話總結：</b>人體地圖 → 穩態地圖 → 代謝地圖 → 損傷地圖 → 受體地圖 → 免疫地圖 → 疾病地圖 → 決策地圖 → 醫師地圖。這條主線涵蓋國考超過80%核心知識。</div>
+
+  <!-- Timeline -->
+  <div class="timeline" style="margin-bottom:20px;">
+    <div class="tl-item" onclick="showYear(1)"><div class="tl-yr">大一</div><div class="tl-txt">基礎科學<br>理解生命</div></div>
+    <div class="tl-item" onclick="showYear(2)"><div class="tl-yr">大二</div><div class="tl-txt">基礎醫學<br>理解人體</div></div>
+    <div class="tl-item active" onclick="showYear(3)"><div class="tl-yr">大三</div><div class="tl-txt">橋接醫學<br>理解疾病</div></div>
+    <div class="tl-item" onclick="showYear(4)"><div class="tl-yr">大四</div><div class="tl-txt">臨床醫學<br>臨床思考</div></div>
+    <div class="tl-item" onclick="showYear(5)"><div class="tl-yr">大五</div><div class="tl-txt">Clerkship<br>臨床推理</div></div>
+    <div class="tl-item" onclick="showYear(6)"><div class="tl-yr">大六</div><div class="tl-txt">Internship<br>臨床決策</div></div>
+    <div class="tl-item current" onclick="showYear(0)"><div class="tl-yr">國考</div><div class="tl-txt">12張地圖<br>整合通關</div></div>
+  </div>
+
+  <div class="box" id="year-detail">
+    <div class="box-t">📚 大三課程詳解 — 橋接醫學（疾病機制理解）</div>
+    <table class="tbl">
+      <thead><tr><th>課程</th><th>核心內容</th><th>對應國考</th><th>超級地圖</th><th>核心能力</th><th>掌握度</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="fw7 text-b">病理學</td>
+          <td>細胞損傷、發炎、腫瘤、壞死</td>
+          <td>病理</td>
+          <td><span class="ktag kr">損傷地圖</span></td>
+          <td>疾病機制力</td>
+          <td><div class="pbar"><div class="pfill p-orange" style="width:62%"></div></div><span style="font-size:11px" class="text-o">62%</span></td>
+        </tr>
+        <tr>
+          <td class="fw7 text-p">藥理學</td>
+          <td>受體系統、藥物機制、副作用</td>
+          <td>藥理</td>
+          <td><span class="ktag kp">受體地圖</span></td>
+          <td>治療理解力</td>
+          <td><div class="pbar"><div class="pfill p-red" style="width:44%"></div></div><span style="font-size:11px" class="text-r">44% ⚠️</span></td>
+        </tr>
+        <tr>
+          <td class="fw7 text-o">微免學</td>
+          <td>T/B細胞、抗體、細菌病毒</td>
+          <td>微免</td>
+          <td><span class="ktag ko">免疫地圖</span></td>
+          <td>防禦系統力</td>
+          <td><div class="pbar"><div class="pfill p-blue" style="width:71%"></div></div><span style="font-size:11px" class="text-b">71%</span></td>
+        </tr>
+        <tr>
+          <td class="fw7 text-g">PBL</td>
+          <td>案例推理、鑑別診斷</td>
+          <td>臨床推理</td>
+          <td><span class="ktag kg">疾病地圖</span></td>
+          <td>問題解決力</td>
+          <td><div class="pbar"><div class="pfill p-green" style="width:68%"></div></div><span style="font-size:11px" class="text-g">68%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="box-t">📊 六年能力生成鏈（完整版）</div>
+    <table class="tbl">
+      <thead><tr><th>年級</th><th>學什麼</th><th>建立什麼地圖</th><th>產生什麼能力</th><th>核心問題</th><th>完成狀態</th></tr></thead>
+      <tbody>
+        <tr><td class="fw7 text-b">大一</td><td>普通生物 · 普化 · 有機 · 心理</td><td><span class="ktag kb">穩態地圖</span><span class="ktag kb">代謝地圖</span></td><td>理解生命運作</td><td>生命怎麼運作？</td><td><span class="text-g fw7">✓ 完成</span></td></tr>
+        <tr><td class="fw7 text-b">大二</td><td>解剖 · 組織 · 生理 · 生化</td><td><span class="ktag kb">人體地圖</span><span class="ktag kg">代謝地圖</span></td><td>理解人體結構</td><td>人體長什麼樣？</td><td><span class="text-g fw7">✓ 完成</span></td></tr>
+        <tr><td class="fw7 text-o">大三</td><td>病理 · 藥理 · 微免 · PBL</td><td><span class="ktag kr">損傷地圖</span><span class="ktag kp">受體地圖</span><span class="ktag ko">免疫地圖</span></td><td>理解疾病生成</td><td>疾病怎麼形成？</td><td><span class="text-o fw7">⚡ 進行中</span></td></tr>
+        <tr><td class="fw7 text-m">大四</td><td>內科 · 外科 · 婦產 · 小兒</td><td><span class="ktag kb">疾病地圖</span><span class="ktag kg">決策樹</span></td><td>臨床思考能力</td><td>疾病怎麼診斷？</td><td><span class="text-m fw7">— 未到</span></td></tr>
+        <tr><td class="fw7 text-m">大五</td><td>臨床見習 Clerkship</td><td>全部地圖整合</td><td>臨床推理能力</td><td>病人怎麼處理？</td><td><span class="text-m fw7">— 未到</span></td></tr>
+        <tr><td class="fw7 text-m">大六</td><td>臨床實習 Internship</td><td>醫師地圖</td><td>臨床決策能力</td><td>如何像醫師思考？</td><td><span class="text-m fw7">— 未到</span></td></tr>
+        <tr><td class="fw7 text-gold">國考</td><td>12張超級地圖整合</td><td>全地圖</td><td>通關能力</td><td>驗證醫學模型</td><td><span class="text-gold fw7">— 目標</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════ ABILITY ══════════════ -->
+<div class="content" id="page-ability">
+  <div class="sh"><div><div class="st">🔺 七層能力金字塔</div><div class="ss">從知道到智慧的完整升級路徑</div></div></div>
+
+  <div class="g2">
+    <div>
+      <div class="box">
+        <div class="box-t">🔺 七層能力金字塔</div>
+        <div class="pyramid">
+          <div class="plevel" style="background:#FFF8E1;border:1px solid rgba(166,119,0,.2)">
+            <div class="pl-num text-gold">7</div><div class="pl-en text-gold">Wisdom</div>
+            <div class="pl-zh text-gold">智慧</div><div class="pl-desc">在不確定中做最高品質決策</div>
+          </div>
+          <div class="plevel" style="background:#F5F0FF;border:1px solid rgba(107,33,168,.15)">
+            <div class="pl-num text-p">6</div><div class="pl-en text-p">Updating</div>
+            <div class="pl-zh text-p">更新</div><div class="pl-desc">從誤差中持續修正模型</div>
+          </div>
+          <div class="plevel" style="background:var(--red-l);border:1px solid rgba(209,48,37,.15)">
+            <div class="pl-num text-r">5</div><div class="pl-en text-r">Decision</div>
+            <div class="pl-zh text-r">決策</div><div class="pl-desc">選擇最優行動方案</div>
+          </div>
+          <div class="plevel" style="background:var(--orange-l);border:1px solid rgba(201,106,0,.15)">
+            <div class="pl-num text-o">4</div><div class="pl-en text-o">Prediction</div>
+            <div class="pl-zh text-o">預測</div><div class="pl-desc">根據模型預判未來走向</div>
+          </div>
+          <div class="plevel" style="background:var(--teal-l);border:1px solid rgba(11,143,172,.15)">
+            <div class="pl-num text-t">3</div><div class="pl-en text-t">Reasoning</div>
+            <div class="pl-zh text-t">推理</div><div class="pl-desc">從症狀推導診斷與機制</div>
+          </div>
+          <div class="plevel" style="background:var(--green-l);border:1px solid rgba(10,138,92,.15)">
+            <div class="pl-num text-g">2</div><div class="pl-en text-g">Understanding</div>
+            <div class="pl-zh text-g">理解</div><div class="pl-desc">掌握知識背後的機制</div>
+          </div>
+          <div class="plevel" style="background:var(--blue-l);border:1px solid rgba(27,95,214,.15)">
+            <div class="pl-num text-b">1</div><div class="pl-en text-b">Knowledge</div>
+            <div class="pl-zh text-b">知道</div><div class="pl-desc">記住醫學知識與事實</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="box">
+        <div class="box-t">⚙️ 五大核心能力</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>📖 知識力</span><span class="text-b">78%</span></div>
+            <div class="pbar"><div class="pfill p-blue" style="width:78%"></div></div>
+            <div class="text-m" style="font-size:11px;margin-top:3px">知道答案 · 記住事實 · 建立資料庫</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🧠 記憶力</span><span class="text-g">71%</span></div>
+            <div class="pbar"><div class="pfill p-green" style="width:71%"></div></div>
+            <div class="text-m" style="font-size:11px;margin-top:3px">記住答案 · 長期保留 · 快速提取</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🔬 推理力</span><span class="text-o">69%</span></div>
+            <div class="pbar"><div class="pfill p-orange" style="width:69%"></div></div>
+            <div class="text-m" style="font-size:11px;margin-top:3px">理解答案 · 建立因果鏈 · 臨床推理</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>⚡ 決策力</span><span class="text-p">62%</span></div>
+            <div class="pbar"><div class="pfill p-purple" style="width:62%"></div></div>
+            <div class="text-m" style="font-size:11px;margin-top:3px">選擇答案 · 臨床判斷 · 行動方案</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🔋 生命力</span><span class="text-g">75%</span></div>
+            <div class="pbar"><div class="pfill p-teal" style="width:75%"></div></div>
+            <div class="text-m" style="font-size:11px;margin-top:3px">持續產生答案 · 能量管理 · 長期續航</div>
+          </div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-t">🏥 醫師能力對比</div>
+        <table class="tbl">
+          <thead><tr><th>類型</th><th>核心特徵</th></tr></thead>
+          <tbody>
+            <tr><td><span class="text-m">傳統醫學生</span></td><td>背書機器 · 分數導向</td></tr>
+            <tr><td><span class="text-o fw7">優秀學生</span></td><td>理解疾病 · 能推理</td></tr>
+            <tr><td><span class="text-b fw7">臨床醫師</span></td><td>預測疾病 · 決策精準</td></tr>
+            <tr><td><span class="text-gold fw7">頂尖醫師</span></td><td>看見疾病背後的系統與未來演化</td></tr>
+          </tbody>
+        </table>
+        <div class="formula">醫師能力 = 知識 × 預測精度 × 更新速度 × 決策品質 × 生命力</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ENGLISH ══════════════ -->
+<div class="content" id="page-english">
+  <div class="sh"><div><div class="st">🔤 醫學英文OS</div><div class="ss">語言壓縮模型 · 建立醫學語言系統</div></div>
+  <button class="btn btn-p">開始學習</button></div>
+
+  <div class="alert a-b">💡 <b>核心模型：語言壓縮模型</b> — 字根+字首+字尾 = 無限擴展醫學詞彙。掌握300個字根，讀懂95%醫學英文。</div>
+
+  <div class="g3">
+    <div class="box">
+      <div class="box-t">📚 字根拆解系統</div>
+      <table class="tbl">
+        <thead><tr><th>字根</th><th>意思</th><th>例字</th><th>發音</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7 text-b">hepato-</td><td>肝</td><td>Hepatomegaly（肝腫大）</td><td>/ˌhepə-/</td></tr>
+          <tr><td class="fw7 text-b">nephro-</td><td>腎</td><td>Nephropathy（腎病變）</td><td>/ˈnefrə-/</td></tr>
+          <tr><td class="fw7 text-b">cardio-</td><td>心臟</td><td>Cardiomegaly（心臟肥大）</td><td>/ˈkɑːdiə-/</td></tr>
+          <tr><td class="fw7 text-b">pneumo-</td><td>肺</td><td>Pneumonia（肺炎）</td><td>/ˈnjuːmə-/</td></tr>
+          <tr><td class="fw7 text-b">neuro-</td><td>神經</td><td>Neuropathy（神經病變）</td><td>/ˈnjʊərə-/</td></tr>
+          <tr><td class="fw7 text-b">osteo-</td><td>骨</td><td>Osteoporosis（骨質疏鬆）</td><td>/ˈɒstiə-/</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box">
+      <div class="box-t">🔤 字首字尾系統</div>
+      <table class="tbl">
+        <thead><tr><th>字首/字尾</th><th>意思</th><th>例字</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7 text-g">-itis</td><td>發炎</td><td>Hepatitis · Arthritis</td></tr>
+          <tr><td class="fw7 text-g">-osis</td><td>異常狀態</td><td>Fibrosis · Stenosis</td></tr>
+          <tr><td class="fw7 text-g">-ectomy</td><td>切除術</td><td>Appendectomy · Gastrectomy</td></tr>
+          <tr><td class="fw7 text-g">-plasty</td><td>整形術</td><td>Angioplasty</td></tr>
+          <tr><td class="fw7 text-g">hyper-</td><td>過多/過高</td><td>Hypertension · Hyperglycemia</td></tr>
+          <tr><td class="fw7 text-g">hypo-</td><td>過少/過低</td><td>Hypotension · Hypoglycemia</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box">
+      <div class="box-t">📋 臨床英文必學</div>
+      <table class="tbl">
+        <thead><tr><th>縮寫</th><th>全稱</th><th>臨床意義</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7">SOB</td><td>Shortness of Breath</td><td>呼吸困難</td></tr>
+          <tr><td class="fw7">c/o</td><td>Complain of</td><td>主訴</td></tr>
+          <tr><td class="fw7">Hx</td><td>History</td><td>病史</td></tr>
+          <tr><td class="fw7">Dx</td><td>Diagnosis</td><td>診斷</td></tr>
+          <tr><td class="fw7">Tx</td><td>Treatment</td><td>治療</td></tr>
+          <tr><td class="fw7">f/u</td><td>Follow up</td><td>追蹤</td></tr>
+          <tr><td class="fw7">PRN</td><td>Pro Re Nata</td><td>需要時使用</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="fc-wrap">
+    <div class="fc" id="fc-eng" onclick="flipFC('fc-eng')">
+      <div class="fcface">
+        <div class="fclbl">🔤 醫學英文 · 卡片 #312</div>
+        <div class="fcword">Hepatomegaly</div>
+        <div class="fchint">點擊翻轉 · 字根拆解 + 發音 + 例句</div>
+      </div>
+      <div class="fcface fcback">
+        <div class="fclbl">✅ 拆解解析</div>
+        <div class="fcanswer">
+          <b>hepato</b>（肝）+ <b>megaly</b>（腫大）= <b>肝腫大</b><br>
+          發音：/ˌhepətəˈmeɡəli/<br>
+          臨床：觸診 RUQ 可及肝臟，常見於肝炎、肝硬化、CHF<br>
+          <span class="ktag kb">肝炎</span><span class="ktag kr">肝硬化</span><span class="ktag ko">右心衰竭</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fcbtns">
+    <button class="fcbtn fca" onclick="nextEng()">😣 再一次</button>
+    <button class="fcbtn fcb" onclick="nextEng()">🙂 記得了</button>
+    <button class="fcbtn fcc" onclick="nextEng()">😎 很簡單</button>
+  </div>
+</div>
+
+<!-- ══════════════ MEMORY ══════════════ -->
+<div class="content" id="page-memory">
+  <div class="sh"><div><div class="st">🧠 超級記憶OS</div><div class="ss">長期記憶引擎 · Anki × 自適應學習 × 疾病地圖整合</div></div>
+  <button class="btn btn-p">🚀 開始複習</button></div>
+
+  <div class="alert a-b">💡 <b>核心模型：遺忘曲線</b> — 第1天忘50%·第3天忘70%·第7天忘80%。Anki解決的不是學習，而是遺忘。記憶公式：<b>記憶力 = 提取次數 × 間隔品質 × 理解深度</b></div>
+
+  <div class="g4">
+    <div class="stat"><div class="stat-ico" style="background:var(--green-l)">🟢</div><div><div class="stat-num text-g">68%</div><div class="stat-lbl">整體記憶強度</div><div class="stat-d text-g">↑ +5% 本週</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--blue-l)">📇</div><div><div class="stat-num text-b">1,247</div><div class="stat-lbl">已建立卡片</div><div class="stat-d text-m">活躍 892張</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--orange-l)">🎯</div><div><div class="stat-num text-o">87%</div><div class="stat-lbl">累積正確率</div><div class="stat-d text-m">近7天</div></div></div>
+    <div class="stat"><div class="stat-ico" style="background:var(--purple-l)">🔥</div><div><div class="stat-num text-p">23</div><div class="stat-lbl">連續學習天</div><div class="stat-d text-m">最長 31天</div></div></div>
+  </div>
+
+  <div class="g2">
+    <div>
+      <div class="fc-wrap">
+        <div class="fc" id="fc-mem" onclick="flipFC('fc-mem')">
+          <div class="fcface">
+            <div class="fclbl">🔬 疾病地圖卡 · 糖尿病 #01</div>
+            <div class="fcword">糖尿病最核心病理機制？</div>
+            <div class="fchint">點擊翻轉 · 連結疾病地圖</div>
+          </div>
+          <div class="fcface fcback">
+            <div class="fclbl">✅ 解答 + 機制鏈</div>
+            <div class="fcanswer" style="font-size:12px">
+              <b>胰島素阻抗</b>（核心機制）<br>
+              肥胖→脂肪激素→IR↑→β細胞代償→衰竭→高血糖<br>
+              → 氧化壓力 → 血管損傷 → 三大併發症<br>
+              <span class="ktag kr">腎病變</span><span class="ktag kr">視網膜</span><span class="ktag kr">神經病變</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fcbtns">
+        <button class="fcbtn fca" onclick="nextMem()">😣 再一次</button>
+        <button class="fcbtn fcb" onclick="nextMem()">🙂 記得了</button>
+        <button class="fcbtn fcc" onclick="nextMem()">😎 很簡單</button>
+      </div>
+    </div>
+    <div>
+      <div class="box">
+        <div class="box-t">📊 記憶狀態分層</div>
+        <table class="tbl">
+          <thead><tr><th>狀態</th><th>數量</th><th>保留率</th><th>下次複習</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><span class="text-r fw7">🔴 新卡</span></td><td>47</td><td class="text-r">0%</td><td>今天</td><td><button class="btn btn-p" style="padding:4px 10px;font-size:11px">學習</button></td></tr>
+            <tr><td><span class="text-o fw7">🟡 學習中</span></td><td>234</td><td class="text-o">52%</td><td>今天</td><td><button class="btn btn-p" style="padding:4px 10px;font-size:11px">複習</button></td></tr>
+            <tr><td><span class="text-g fw7">🟢 掌握</span></td><td>658</td><td class="text-g">87%</td><td>3天後</td><td><button class="btn btn-o" style="padding:4px 10px;font-size:11px">預覽</button></td></tr>
+            <tr><td><span class="text-b fw7">💎 長期</span></td><td>308</td><td class="text-b">95%+</td><td>21天後</td><td><button class="btn btn-o" style="padding:4px 10px;font-size:11px">預覽</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box">
+        <div class="box-t">🤖 AI自動出卡 × 疾病地圖整合</div>
+        <div class="alert a-b">輸入「糖尿病」→ AI自動生成20張卡，包含病理卡、藥理卡、診斷卡、PBL卡</div>
+        <div class="mnem">
+          <div class="mnem-t">💡 超級OS版 vs 傳統Anki</div>
+          <div class="mnem-c" style="font-size:12px">
+            傳統 Anki：一張卡 = 一個知識點<br>
+            超級OS：一張卡 → 連到疾病地圖 → 展開整個系統<br>
+            + 昨天睡4h → 系統自動：先複習舊卡，不加新卡
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EXAM ══════════════ -->
+<div class="content" id="page-exam">
+  <div class="sh"><div><div class="st">📋 考試OS</div><div class="ss">建立出題者模型 · 高頻考點 · 80/20法則</div></div></div>
+  <div class="alert a-b">💡 <b>核心模型：預測模型</b> — 國考分數 = 命中考點數 ÷ 總考點數。學習效率 = 考點權重 × 命中率。先分析命題規律，再讀書。</div>
+  <div class="qbox">
+    <div class="qlbl">📋 考古題 2023 · 藥理學 · 出題頻率 85% 🔥</div>
+    <div class="qtext">一位55歲男性，有高血壓及慢性心衰竭病史，目前使用 carvedilol 治療。關於 carvedilol 的藥理機制，下列何者<b>正確</b>？</div>
+    <div class="qopts" id="eqopts">
+      <div class="qopt" onclick="ansQ(0,false)"><div class="okey">A</div>選擇性 β₁ 受體拮抗劑，不影響 α 受體</div>
+      <div class="qopt" onclick="ansQ(1,true)"><div class="okey">B</div>非選擇性 β 受體拮抗劑，同時具有 α₁ 受體拮抗作用</div>
+      <div class="qopt" onclick="ansQ(2,false)"><div class="okey">C</div>選擇性 β₂ 受體激動劑，擴張支氣管</div>
+      <div class="qopt" onclick="ansQ(3,false)"><div class="okey">D</div>純粹 α₁ 受體拮抗劑，降低周邊血管阻力</div>
+    </div>
+    <div class="qexp" id="eqexp">
+      <b>✅ 正確答案：B</b><br><br>
+      <b>解析：</b>Carvedilol = 第三代 β 受體拮抗劑<br>
+      • <b>非選擇性 β₁+β₂ 拮抗</b>：減慢心率、減少心臟收縮力、防止心臟重塑<br>
+      • <b>α₁ 受體拮抗</b>：擴張周邊血管、降低後負荷（差異點！）<br>
+      • <b>抗氧化性質</b>：額外保護心肌細胞<br><br>
+      <b>VS Metoprolol：</b>選擇性β1，不拮抗α。Carvedilol雙重機制在心衰竭療效更優。<br><br>
+      <b>記憶口訣：</b>Car<b>ve</b>dilol = <b>Care</b>（α+β都照顧）<br>
+      <span class="ktag kb">β-blocker比較</span><span class="ktag kp">α1拮抗</span><span class="ktag kg">心衰竭首選</span>
+    </div>
+  </div>
+  <div class="alert a-o">💡 本題近10年出現 <b>7次</b>。建議同時複習：Propranolol / Metoprolol / Labetalol / Carvedilol 四藥比較表</div>
+</div>
+
+<!-- ══════════════ DISEASE MAP ══════════════ -->
+<div class="content" id="page-disease">
+  <div class="sh"><div><div class="st">🗺 疾病地圖OS</div><div class="ss">8張系統地圖 · 疾病不是事件，是系統失衡的結果</div></div></div>
+
+  <div class="alert a-b">💡 <b>疾病地圖本質：</b>普通學生背疾病名稱 → 優秀學生理解疾病機制 → 臨床醫師預測疾病走向 → 頂尖醫師看見疾病背後的整體系統網路。</div>
+
+  <div class="pills">
+    <div class="pill active">疾病地圖</div><div class="pill">病理地圖</div><div class="pill">藥理地圖</div>
+    <div class="pill">器官地圖</div><div class="pill">免疫地圖</div><div class="pill">發炎地圖</div>
+    <div class="pill">代謝地圖</div><div class="pill">系統交互圖</div>
+  </div>
+
+  <!-- 8 Maps overview table -->
+  <div class="box mb12">
+    <div class="box-t">📊 8張地圖總覽</div>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>地圖</th><th>核心問題</th><th>本質</th><th>關鍵節點</th><th>生成機制</th><th>輸出能力</th></tr></thead>
+      <tbody>
+        <tr><td class="fw7 text-b">①</td><td><b>疾病地圖</b></td><td>疾病如何形成？</td><td>疾病全貌模型</td><td>危險因子</td><td>危險因子→疾病→併發症</td><td>理解疾病全貌</td></tr>
+        <tr><td class="fw7 text-r">②</td><td><b>病理地圖</b></td><td>細胞如何壞掉？</td><td>疾病生成模型</td><td>細胞損傷</td><td>細胞→組織→器官損傷</td><td>理解病理機制</td></tr>
+        <tr><td class="fw7 text-p">③</td><td><b>藥理地圖</b></td><td>藥物作用在哪？</td><td>治療機制模型</td><td>藥物標靶</td><td>藥物→受體→生理改變</td><td>理解治療邏輯</td></tr>
+        <tr><td class="fw7 text-t">④</td><td><b>器官地圖</b></td><td>器官如何運作？</td><td>生理功能模型</td><td>器官功能</td><td>功能下降→代償→失代償</td><td>建立器官思維</td></tr>
+        <tr><td class="fw7 text-o">⑤</td><td><b>免疫地圖</b></td><td>免疫如何保護？</td><td>防禦系統模型</td><td>免疫活化</td><td>病原體→免疫反應→清除</td><td>建立免疫思維</td></tr>
+        <tr><td class="fw7 text-r">⑥</td><td><b>發炎地圖</b></td><td>發炎如何致病？</td><td>慢病生成模型</td><td>慢性發炎</td><td>發炎→組織損傷→疾病</td><td>理解慢病根源</td></tr>
+        <tr><td class="fw7 text-g">⑦</td><td><b>代謝地圖</b></td><td>能量如何流動？</td><td>能量管理模型</td><td>胰島素</td><td>能量失衡→代謝異常</td><td>理解代謝疾病</td></tr>
+        <tr><td class="fw7 text-gold">⑧</td><td><b>系統交互圖</b></td><td>系統如何互動？</td><td>複雜系統模型</td><td>系統連結</td><td>多系統交互→疾病湧現</td><td>建立系統論思維</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Diabetes integration example -->
+  <div class="box">
+    <div class="box-t">🎯 糖尿病整合地圖範例（8張地圖全整合）</div>
+    <div class="g3">
+      <div>
+        <div class="flow">
+          <div class="fnode"><div class="fdot" style="background:var(--green-l);border-color:var(--green);color:var(--green)">①</div><div class="fcontent"><div class="ftitle">代謝地圖</div><div class="fdesc">高糖飲食 → 胰島素↑ → 脂肪堆積 → 胰島素阻抗 → 代謝症候群</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">②</div><div class="fcontent"><div class="ftitle">發炎地圖</div><div class="fdesc">脂肪細胞↑ → TNF-α↑ → 慢性低度發炎 → IL-6↑ → NF-κB活化</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--orange-l);border-color:var(--orange);color:var(--orange)">③</div><div class="fcontent"><div class="ftitle">免疫地圖</div><div class="fdesc">巨噬細胞活化（M1型）→ 促發炎激素↑ → 胰島素訊號干擾</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">④</div><div class="fcontent"><div class="ftitle">病理地圖</div><div class="fdesc">高血糖 → 氧化壓力 → 血管內皮受損 → 非酵素性糖化</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="flow">
+          <div class="fnode"><div class="fdot" style="background:var(--teal-l);border-color:var(--teal);color:var(--teal)">⑤</div><div class="fcontent"><div class="ftitle">器官地圖</div><div class="fdesc">腎臟：GFR↓ → 糖尿病腎病變 → 蛋白尿 → 洗腎<br>眼：視網膜微血管 → 失明</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--purple-l);border-color:var(--purple);color:var(--purple)">⑥</div><div class="fcontent"><div class="ftitle">藥理地圖</div><div class="fdesc">Metformin → AMPK活化 → 抑制糖質新生<br>SGLT2i → 腎臟排糖 → 心腎保護</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--gold-l);border-color:var(--gold);color:var(--gold)">⑦</div><div class="fcontent"><div class="ftitle">系統交互圖</div><div class="fdesc">腸道菌相失衡 → LPS→ 免疫活化 → 慢性發炎 → 胰島素阻抗（腸腦軸）</div></div></div>
+          <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">⑧</div><div class="fcontent"><div class="ftitle">臨床決策圖</div><div class="fdesc">飲食+運動+Metformin → HbA1c追蹤 → 若腎病：SGLT2i + 腎科轉介</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="box" style="background:var(--bg3)">
+          <div class="box-t text-b">📊 糖尿病 9層理解架構</div>
+          <table class="tbl">
+            <thead><tr><th>層</th><th>問題</th><th>目標</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>疾病是什麼？</td><td>知道</td></tr>
+              <tr><td>2</td><td>怎麼形成？</td><td>理解</td></tr>
+              <tr><td>3</td><td>為什麼形成？</td><td>機制</td></tr>
+              <tr><td>4</td><td>哪個系統出問題？</td><td>系統分析</td></tr>
+              <tr><td>5</td><td>如何診斷？</td><td>臨床推理</td></tr>
+              <tr><td>6</td><td>如何治療？</td><td>臨床決策</td></tr>
+              <tr><td>7</td><td>如何預防？</td><td>預測疾病</td></tr>
+              <tr><td>8</td><td>如何避免復發？</td><td>系統管理</td></tr>
+              <tr><td>9</td><td>如何提升健康？</td><td>穩態優化</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PBL ══════════════ -->
+<div class="content" id="page-pbl">
+  <div class="sh"><div><div class="st">🔬 PBL推理OS</div><div class="ss">貝葉斯推理模型 · AI病人 · 像醫師一樣思考</div></div>
+  <button class="btn btn-p">新案例 🎲</button></div>
+  <div class="alert a-b">💡 <b>核心模型：貝葉斯推理</b> — 診斷率 = 資訊品質 × 推理品質。常見病先想，罕見病後排除。PBL不是討論，是建立臨床思維模型。</div>
+  <div class="pbl-case">
+    <div class="pbl-head">
+      <div class="pbl-pt"><div class="pbl-av">👨</div><div><div class="pbl-nm">案例 #028 · 張先生，62歲，男性</div><div class="pbl-info">急診就醫 · 主訴：胸痛 3小時 · 難度：⭐⭐⭐⭐</div></div></div>
+      <div class="chip" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.2)">冠心症 Case</div>
+    </div>
+    <div class="pbl-body">
+      <div class="g2">
+        <div>
+          <div class="pbl-sec"><div class="pbl-sectl">🩺 病史 & 症狀</div><div style="font-size:13px;color:var(--text2);line-height:1.7"><b>主訴：</b>持續性胸骨後悶痛，放射至左肩與下顎，冷汗、噁心，無發燒。<br><b>過去史：</b>高血壓10年（未規則服藥）·抽菸30包/年·無糖尿病史。</div></div>
+          <div class="pbl-sec"><div class="pbl-sectl">📊 生命徵象 & 關鍵檢查</div><div class="stags"><span class="stag sr">BP 160/95</span><span class="stag sr">HR 102</span><span class="stag sb">SpO₂ 96%</span><span class="stag sr">ECG: ST↑ V1-V4</span><span class="stag sr">Troponin I ↑↑↑</span><span class="stag so">CK-MB ↑</span></div></div>
+          <div class="pbl-sec"><div class="pbl-sectl">💊 處置決策</div><div class="stags"><span class="stag sb">Aspirin 300mg STAT</span><span class="stag sb">Clopidogrel 600mg</span><span class="stag sb">Heparin IV</span><span class="stag sr">緊急PCI ≤90min</span><span class="stag sg">持續心電監控</span></div></div>
+        </div>
+        <div>
+          <div class="pbl-sec"><div class="pbl-sectl">🧪 鑑別診斷機率排序</div>
+            <div class="ddxlist">
+              <div class="ddxi"><span class="text-r fw7">①</span><span style="flex:1;fw7">急性前壁STEMI</span><span class="text-r fw7">92%</span><div class="ddxbar"><div class="ddxfill" style="width:92%;background:linear-gradient(90deg,var(--red),#F44336)"></div></div></div>
+              <div class="ddxi"><span class="text-o fw7">②</span><span style="flex:1">主動脈剝離</span><span class="text-o fw7">5%</span><div class="ddxbar"><div class="ddxfill" style="width:5%;background:linear-gradient(90deg,#B05A00,var(--orange))"></div></div></div>
+              <div class="ddxi"><span class="text-m fw7">③</span><span style="flex:1;color:var(--text3)">不穩定心絞痛</span><span class="text-m fw7">2%</span><div class="ddxbar"><div class="ddxfill" style="width:2%"></div></div></div>
+              <div class="ddxi"><span class="text-m fw7">④</span><span style="flex:1;color:var(--text3)">肺栓塞</span><span class="text-m fw7">1%</span><div class="ddxbar"><div class="ddxfill" style="width:1%"></div></div></div>
+            </div>
+          </div>
+          <div class="mnem" style="margin-top:12px">
+            <div class="mnem-t">🎯 STEMI 黃金記憶</div>
+            <div class="mnem-c" style="font-size:12px">ST↑ ≥1mm（≥2相鄰導程）<br>V1-V4 → 前壁（LAD阻塞）<br>II/III/aVF → 下壁（RCA阻塞）<br>Door-to-Balloon ≤<b>90分鐘</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ANXIETY ══════════════ -->
+<div class="content" id="page-anxiety">
+  <div class="sh"><div><div class="st">🧘 焦慮工程OS</div><div class="ss">預測編碼理論 · 降低不確定性 · 面對考試不崩潰</div></div></div>
+  <div class="alert a-p">💡 <b>核心觀念：焦慮 = 未被解釋的不確定性</b>。解決方案不是「放鬆」，而是「提升預測能力」——知道會發生什麼，焦慮自然下降。</div>
+  <div class="g3">
+    <div class="box">
+      <div class="box-t">😰 醫學生惡性循環</div>
+      <div class="flow">
+        <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">1</div><div class="fcontent"><div class="ftitle">資訊爆炸</div><div class="fdesc">每天需吸收大量醫學知識</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">2</div><div class="fcontent"><div class="ftitle">認知超載</div><div class="fdesc">大腦工作記憶超限</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">3</div><div class="fcontent"><div class="ftitle">焦慮增加</div><div class="fdesc">不確定性上升 → 皮質醇↑</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">4</div><div class="fcontent"><div class="ftitle">睡眠下降</div><div class="fdesc">記憶鞏固不足</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--red-l);border-color:var(--red);color:var(--red)">5</div><div class="fcontent"><div class="ftitle">自我懷疑</div><div class="fdesc">「我不適合讀醫學」的負面循環</div></div></div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-t">💡 焦慮工程解決方案</div>
+      <table class="tbl">
+        <thead><tr><th>功能</th><th>核心原理</th><th>效果</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7">焦慮診斷</td><td>量化不確定性來源</td><td>知道在怕什麼</td></tr>
+          <tr><td class="fw7">預測訓練</td><td>提升考試預測能力</td><td>考前不再盲目</td></tr>
+          <tr><td class="fw7">安全感訓練</td><td>建立內在穩定感</td><td>壓力下仍可思考</td></tr>
+          <tr><td class="fw7">睡眠管理</td><td>優化記憶鞏固</td><td>記憶力↑</td></tr>
+          <tr><td class="fw7">認知重建</td><td>修正災難化思維</td><td>情緒穩定</td></tr>
+          <tr><td class="fw7">壓力監測</td><td>即時偵測HRV/皮膚電阻</td><td>早期預警</td></tr>
+        </tbody>
+      </table>
+      <div class="formula" style="margin-top:10px">焦慮管理 = 預測能力↑ + 不確定性↓ + 安全感↑</div>
+    </div>
+    <div class="box">
+      <div class="box-t">📊 今日焦慮儀表板</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>😰 焦慮指數</span><span class="text-r">72/100</span></div><div class="pbar"><div class="pfill p-red" style="width:72%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">⚠️ 偏高 — 建議啟動安全感訓練</div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>😴 睡眠品質</span><span class="text-o">55/100</span></div><div class="pbar"><div class="pfill p-orange" style="width:55%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">近3天平均5.8h，記憶鞏固不足</div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>💪 壓力恢復力</span><span class="text-g">78/100</span></div><div class="pbar"><div class="pfill p-green" style="width:78%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">本週提升 +8%，繼續保持</div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🔮 預測能力</span><span class="text-b">68/100</span></div><div class="pbar"><div class="pfill p-blue" style="width:68%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">考點預測正確率，可繼續提升</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RESILIENCE ══════════════ -->
+<div class="content" id="page-resilience">
+  <div class="sh"><div><div class="st">💪 韌性工程OS</div><div class="ss">控制論模型 · 反脆弱訓練 · 跌倒後更快站起來</div></div></div>
+  <div class="alert a-o">💡 <b>核心模型：控制論（Cybernetics）</b> — 韌性公式：恢復速度 × 適應能力 × 更新能力。失敗不是終點，而是修正模型的數據點。</div>
+  <div class="g2">
+    <div class="box">
+      <div class="box-t">💡 韌性六大訓練模組</div>
+      <table class="tbl">
+        <thead><tr><th>模組</th><th>訓練內容</th><th>產出</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7">韌性診斷</td><td>測量目前恢復速度基準</td><td>知道自己的韌性現狀</td></tr>
+          <tr><td class="fw7">失敗分析</td><td>解構每次失敗的根本原因</td><td>不重複同樣錯誤</td></tr>
+          <tr><td class="fw7">逆境模擬</td><td>主動暴露於可控壓力源</td><td>壓力適應能力↑</td></tr>
+          <tr><td class="fw7">反脆弱訓練</td><td>從波動中獲益而非受害</td><td>越挫越勇</td></tr>
+          <tr><td class="fw7">恢復力追蹤</td><td>量化挫折後的恢復時間</td><td>持續縮短恢復時間</td></tr>
+          <tr><td class="fw7">成長日誌</td><td>記錄每次突破與學習</td><td>正向回饋循環</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">韌性 = 恢復速度 × 適應能力 × 更新能力</div>
+    </div>
+    <div class="box">
+      <div class="box-t">📊 韌性儀表板</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>⚡ 恢復速度</span><span class="text-g">74%</span></div><div class="pbar"><div class="pfill p-green" style="width:74%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">考試失利後平均1.8天恢復正常</div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🔄 適應能力</span><span class="text-b">68%</span></div><div class="pbar"><div class="pfill p-blue" style="width:68%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">應對新挑戰的彈性</div></div>
+        <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;font-weight:700"><span>🔧 更新能力</span><span class="text-o">61%</span></div><div class="pbar"><div class="pfill p-orange" style="width:61%"></div></div><div class="text-m" style="font-size:11px;margin-top:2px">根據失敗修正學習策略</div></div>
+        <div class="alert a-o" style="margin-top:8px">⚠️ 更新能力偏低，建議啟動「失敗分析模組」</div>
+        <div class="mnem"><div class="mnem-t">💡 反脆弱核心觀念</div><div class="mnem-c" style="font-size:12px">一般人：失敗→受傷<br>韌性強：失敗→恢復<br>反脆弱：失敗→更強<br>目標：從每次考試失誤中提取最大學習值</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ VITALITY ══════════════ -->
+<div class="content" id="page-vitality">
+  <div class="sh"><div><div class="st">🔋 生命力OS</div><div class="ss">穩態模型 · 管理生理能量 · 長期維持高效學習</div></div></div>
+  <div class="alert a-g">💡 <b>核心模型：穩態（Homeostasis）</b> — 生命力公式：能量產生 − 能量消耗。大多數醫學生問題不是不努力，而是睡眠不足↓記憶↓、壓力↑↓學習效率。</div>
+  <div class="vital-grid">
+    <div class="vital-card"><div class="vital-icon">😴</div><div class="vital-name">睡眠品質</div><div class="vital-val text-o">5.8h</div><div class="vital-status text-r">⚠️ 低於建議7-8h</div></div>
+    <div class="vital-card"><div class="vital-icon">🏃</div><div class="vital-name">運動記錄</div><div class="vital-val text-g">3次/週</div><div class="vital-status text-g">✓ 達標</div></div>
+    <div class="vital-card"><div class="vital-icon">🥗</div><div class="vital-name">營養品質</div><div class="vital-val text-b">72%</div><div class="vital-status text-m">均衡飲食指數</div></div>
+    <div class="vital-card"><div class="vital-icon">🧠</div><div class="vital-name">專注力指數</div><div class="vital-val text-o">65%</div><div class="vital-status text-o">⚠️ 輕微腦霧</div></div>
+    <div class="vital-card"><div class="vital-icon">⚡</div><div class="vital-name">能量儲備</div><div class="vital-val text-b">71%</div><div class="vital-status text-m">尚可，可優化</div></div>
+    <div class="vital-card"><div class="vital-icon">💓</div><div class="vital-name">HRV自律神經</div><div class="vital-val text-g">68ms</div><div class="vital-status text-g">✓ 正常範圍</div></div>
+  </div>
+  <div class="box">
+    <div class="box-t">🔬 生命力 × 學習效率關係</div>
+    <table class="tbl">
+      <thead><tr><th>生命力指標</th><th>影響機制</th><th>學習影響</th><th>優化方法</th></tr></thead>
+      <tbody>
+        <tr><td class="fw7 text-r">睡眠不足&lt;6h</td><td>海馬迴記憶鞏固受損</td><td>記憶保留率 -40%</td><td>固定就寢時間 · 睡前Anki複習</td></tr>
+        <tr><td class="fw7 text-r">皮質醇過高</td><td>前額葉功能↓</td><td>推理力 -30%</td><td>冥想10分鐘 · 運動</td></tr>
+        <tr><td class="fw7 text-o">腦霧狀態</td><td>粒線體ATP不足</td><td>學習效率 -25%</td><td>深呼吸 · 休息15分鐘</td></tr>
+        <tr><td class="fw7 text-g">規律運動</td><td>BDNF↑ · 海馬迴成長</td><td>記憶力 +20%</td><td>每週3次30分鐘有氧</td></tr>
+        <tr><td class="fw7 text-g">充足睡眠≥7h</td><td>突觸強化 · 毒素清除</td><td>隔天記憶保留+35%</td><td>0-0-7-7原則</td></tr>
+      </tbody>
+    </table>
+    <div class="formula">生命力公式：能量產生（粒線體功能）- 能量消耗（壓力+睡不足）= 可用能量<br><span style="font-size:11px;font-weight:400">AI智慧提醒：昨天睡眠4h → 今日不加新卡，先複習舊卡</span></div>
+  </div>
+</div>
+
+<!-- ══════════════ RESEARCH ══════════════ -->
+<div class="content" id="page-research">
+  <div class="sh"><div><div class="st">📊 醫學研究OS</div><div class="ss">EBM · 統計學 · AI論文助手 · 建立科研能力</div></div></div>
+  <div class="g2">
+    <div class="box"><div class="box-t">📈 統計學核心概念</div>
+      <table class="tbl">
+        <thead><tr><th>概念</th><th>定義</th><th>記憶鍵</th></tr></thead>
+        <tbody>
+          <tr><td class="fw7">Sensitivity</td><td>TP/(TP+FN) · 找出真正病人的能力</td><td>篩檢用高敏感度</td></tr>
+          <tr><td class="fw7">Specificity</td><td>TN/(TN+FP) · 排除正常人的能力</td><td>確診用高特異度</td></tr>
+          <tr><td class="fw7">P-value</td><td>&lt;0.05 表示統計顯著</td><td>5%錯誤機率</td></tr>
+          <tr><td class="fw7">NNT</td><td>Number Needed to Treat</td><td>越小越好</td></tr>
+          <tr><td class="fw7">RCT</td><td>隨機對照試驗 · 最高證據等級</td><td>金標準</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box"><div class="box-t">🔬 EBM五步驟</div>
+      <div class="flow">
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">1</div><div class="fcontent"><div class="ftitle">提出問題 PICO</div><div class="fdesc">Patient · Intervention · Comparison · Outcome</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">2</div><div class="fcontent"><div class="ftitle">搜尋文獻</div><div class="fdesc">PubMed · Cochrane · UpToDate</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">3</div><div class="fcontent"><div class="ftitle">嚴格評讀</div><div class="fdesc">內部效度 · 外部效度 · 偏誤風險</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">4</div><div class="fcontent"><div class="ftitle">臨床應用</div><div class="fdesc">整合病人偏好 · 臨床情境</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">5</div><div class="fcontent"><div class="ftitle">評估結果</div><div class="fdesc">追蹤結果 · 修正決策</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ COMM ══════════════ -->
+<div class="content" id="page-comm">
+  <div class="sh"><div><div class="st">💬 醫病溝通OS</div><div class="ss">標準病人模擬 · 同理心訓練 · 病人願意相信你</div></div></div>
+  <div class="g3">
+    <div class="box"><div class="box-t">💬 SPIKES壞消息告知</div>
+      <div class="flow">
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">S</div><div class="fcontent"><div class="ftitle">Setting up</div><div class="fdesc">選擇適當環境，確保隱私</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">P</div><div class="fcontent"><div class="ftitle">Perception</div><div class="fdesc">先了解病人知道多少</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">I</div><div class="fcontent"><div class="ftitle">Invitation</div><div class="fdesc">詢問病人想知道多少</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">K</div><div class="fcontent"><div class="ftitle">Knowledge</div><div class="fdesc">用簡單語言告知</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">E</div><div class="fcontent"><div class="ftitle">Empathy</div><div class="fdesc">認可並回應情緒</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">S</div><div class="fcontent"><div class="ftitle">Strategy</div><div class="fdesc">共同規劃後續計畫</div></div></div>
+      </div>
+    </div>
+    <div class="box"><div class="box-t">🎭 溝通能力矩陣</div>
+      <table class="tbl">
+        <thead><tr><th>情境</th><th>核心技巧</th><th>常見錯誤</th></tr></thead>
+        <tbody>
+          <tr><td>問診</td><td>開放式問題 → 封閉式</td><td>一開始就封閉式</td></tr>
+          <tr><td>壞消息</td><td>SPIKES框架</td><td>太直接或太模糊</td></tr>
+          <tr><td>知情同意</td><td>確認理解度</td><td>只給資訊不確認</td></tr>
+          <tr><td>醫病衝突</td><td>先同理再解釋</td><td>直接辯論</td></tr>
+          <tr><td>跨文化</td><td>確認文化背景</td><td>假設所有人相同</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box"><div class="box-t">🤖 AI標準病人模擬</div>
+      <div class="alert a-b">🎭 今日情境：告知癌症診斷給62歲退休教師</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <div style="padding:10px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--blue)"><b>病人：</b>「醫生，我的檢查結果怎麼樣？」</div>
+        <div style="padding:10px;background:var(--green-l);border-radius:8px;border-left:3px solid var(--green)"><b>好的回應：</b>「您好，在我告訴您結果之前，我想先了解您自己對這次檢查有什麼想法？」</div>
+        <div style="padding:10px;background:var(--red-l);border-radius:8px;border-left:3px solid var(--red)"><b>常見錯誤：</b>「您有癌症。」（太突然，沒有準備）</div>
+      </div>
+      <button class="btn btn-p mt8" style="width:100%">開始模擬練習</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CAREER ══════════════ -->
+<div class="content" id="page-career">
+  <div class="sh"><div><div class="st">🗺 職涯導航OS</div><div class="ss">決策樹模型 · PGY · 專科選擇 · 薪資地圖 · 人生導航</div></div></div>
+  <div class="alert a-b">💡 <b>核心模型：決策樹</b> — 職涯不是單一路徑，是一棵分叉的決策樹。每個節點都有機會成本，AI幫你模擬不同路徑的可能結果。</div>
+  <div class="career-grid">
+    <div class="career-card" style="--cc:#1B5FD6"><div class="cc-stage">畢業後 1-2年</div><div class="cc-title">PGY 一般科訓練</div><div class="cc-items">必修科輪訓：內外婦兒急<br>薪資：約 60,000-70,000/月<br>核心能力：基本臨床技能</div></div>
+    <div class="career-card" style="--cc:#0A8A5C"><div class="cc-stage">PGY後 3-5年</div><div class="cc-title">住院醫師 (R)</div><div class="cc-items">選定專科深化訓練<br>薪資：80,000-120,000/月<br>核心能力：專科臨床決策</div></div>
+    <div class="career-card" style="--cc:#C96A00"><div class="cc-stage">5-8年後</div><div class="cc-title">主治醫師 (VS)</div><div class="cc-items">醫院或自行開業<br>薪資：150,000-400,000+<br>核心能力：獨立決策</div></div>
+    <div class="career-card" style="--cc:#6B21A8"><div class="cc-stage">熱門專科</div><div class="cc-title">高薪科別</div><div class="cc-items">皮膚科 · 眼科 · 整形外科<br>放射科 · 麻醉科 · 急診<br>（競爭激烈，需早規劃）</div></div>
+    <div class="career-card" style="--cc:#D13025"><div class="cc-stage">替代路徑</div><div class="cc-title">創業醫師 / 醫療新創</div><div class="cc-items">診所創業 · HealthTech<br>醫療顧問 · 醫學教育<br>AI醫療 · 生技新藥</div></div>
+    <div class="career-card" style="--cc:#0B8FAC"><div class="cc-stage">國際路線</div><div class="cc-title">海外行醫 / 研究</div><div class="cc-items">美國 USMLE · 英國 PLAB<br>海外大學研究職<br>國際醫療合作組織</div></div>
+  </div>
+</div>
+
+<!-- ══════════════ AI ══════════════ -->
+<div class="content" id="page-ai">
+  <div class="sh"><div><div class="st">🤖 五大AI引擎</div><div class="ss">即時解題 · 個人化指導 · 案例推理 · 職涯規劃</div></div></div>
+  <div class="t-grid">
+    <div class="t-card on" onclick="selAI(this,'AI導師','🎓 我是你的AI導師！幫你理解任何醫學知識，從知識到智慧的完整升級！','你是醫學生超級OS的AI導師，用繁體中文，幫助醫學生理解醫學知識，從知識到推理到決策，回答200字內精準。')"><div class="t-emoji">🎓</div><div class="t-name">AI導師</div><div class="t-role">教你學</div></div>
+    <div class="t-card" onclick="selAI(this,'AI教練','💪 我是你的AI學習教練！督促你執行讀書計畫，分析弱點，推動你持續進步！','你是醫學生超級OS的AI學習教練，督促執行、分析弱點、給出具體改善建議，繁體中文。')"><div class="t-emoji">💪</div><div class="t-name">AI教練</div><div class="t-role">督促你做</div></div>
+    <div class="t-card" onclick="selAI(this,'AI病人','🤒 我是你的AI模擬病人！給你症狀，讓你訓練問診、診斷、推理的完整流程！','你是醫學生超級OS的AI模擬病人，呈現逼真症狀，讓學生練習問診和鑑別診斷，繁體中文，引導但不直接給答案。')"><div class="t-emoji">🤒</div><div class="t-name">AI病人</div><div class="t-role">陪你推理</div></div>
+    <div class="t-card" onclick="selAI(this,'AI主治醫師','👨‍⚕️ 我是AI模擬主治醫師！案例討論、臨床決策訓練，讓你像主治一樣思考！','你是AI模擬主治醫師，引導學生進行高品質臨床決策訓練，蘇格拉底式提問，繁體中文。')"><div class="t-emoji">👨‍⚕️</div><div class="t-name">AI主治</div><div class="t-role">訓練你決策</div></div>
+    <div class="t-card" onclick="selAI(this,'AI職涯顧問','🗺 我是你的AI職涯顧問！分析你的特質，幫你規劃最適合的醫師職涯路徑！','你是醫學生超級OS的AI職涯顧問，分析學生特質、興趣、能力，給出具體職涯建議，繁體中文。')"><div class="t-emoji">🗺</div><div class="t-name">AI職涯顧問</div><div class="t-role">規劃你未來</div></div>
+    <div class="t-card" onclick="selAI(this,'AI韌性教練','💡 我是你的AI心理韌性教練！幫你處理焦慮、挫折、壓力，讓你越挫越勇！','你是醫學生超級OS的AI韌性教練，協助學生處理焦慮和挫折，提供預測編碼框架和認知重建，繁體中文。')"><div class="t-emoji">💡</div><div class="t-name">AI韌性教練</div><div class="t-role">強化你心理</div></div>
+    <div class="t-card" onclick="selAI(this,'AI研究助手','📊 我是你的AI研究助手！幫你讀論文、設計研究、理解統計，輕鬆搞懂EBM！','你是醫學生超級OS的AI研究助手，幫助理解醫學論文、統計學、EBM，繁體中文，用白話解釋複雜概念。')"><div class="t-emoji">📊</div><div class="t-name">AI研究助手</div><div class="t-role">科研指導</div></div>
+    <div class="t-card" onclick="selAI(this,'AI病理老師','🔬 我是你的AI病理老師！把疾病機制用因果鏈說清楚，讓你真正理解不只死背！','你是醫學生超級OS的AI病理老師，用疾病地圖框架解析病理機制，繁體中文，強調因果鏈理解。')"><div class="t-emoji">🔬</div><div class="t-name">AI病理老師</div><div class="t-role">機制解析</div></div>
+  </div>
+  <div class="chat-box">
+    <div class="chat-head">
+      <div class="dot-g"></div>
+      <span id="ai-teacher-nm">🎓 AI導師</span>
+      <span style="font-size:10px;color:var(--text4);margin-left:auto">Powered by Claude · 即時回覆</span>
+    </div>
+    <div class="chat-msgs" id="ai-chat-msgs">
+      <div class="msg ai"><div class="mavatar">🤖</div><div class="mbubble">🎓 我是你的AI導師！幫你理解任何醫學知識，從知識到智慧的完整升級！請問今天想學什麼？</div></div>
+    </div>
+    <div class="chat-in-row">
+      <input class="chat-in" id="ai-chat-in" placeholder="輸入任何醫學問題 / 考點 / 題目讓我解析..."
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+      <button class="btn btn-p" onclick="sendChat()">送出 ↵</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div class="content" id="page-dashboard">
+  <div class="sh"><div><div class="st">📊 六大數據儀表板</div><div class="ss">每日更新 · 每週分析 · 每月成長曲線</div></div></div>
+  <div class="g3">
+    <div class="box"><div class="box-t text-b">📖 知識力指數</div><div style="font-size:36px;font-weight:900;color:var(--blue);text-align:center;margin:10px 0">78%</div><div class="pbar mb8"><div class="pfill p-blue" style="width:78%"></div></div><div class="text-m" style="font-size:12px">考點掌握度 · 本月 ↑ +6%<br>弱點：藥理學（44%）· 生化學（51%）</div></div>
+    <div class="box"><div class="box-t text-g">🧠 記憶力指數</div><div style="font-size:36px;font-weight:900;color:var(--green);text-align:center;margin:10px 0">71%</div><div class="pbar mb8"><div class="pfill p-green" style="width:71%"></div></div><div class="text-m" style="font-size:12px">長期保留率 · Anki效率 87%<br>今日到期：47張需複習</div></div>
+    <div class="box"><div class="box-t text-o">🔬 推理力指數</div><div style="font-size:36px;font-weight:900;color:var(--orange);text-align:center;margin:10px 0">69%</div><div class="pbar mb8"><div class="pfill p-orange" style="width:69%"></div></div><div class="text-m" style="font-size:12px">PBL能力 · 鑑別診斷正確率<br>本月 ↑ +12%，進步顯著</div></div>
+    <div class="box"><div class="box-t text-p">⚡ 決策力指數</div><div style="font-size:36px;font-weight:900;color:var(--purple);text-align:center;margin:10px 0">62%</div><div class="pbar mb8"><div class="pfill p-purple" style="width:62%"></div></div><div class="text-m" style="font-size:12px">臨床判斷能力 · 本月 ↑ +8%<br>建議加強：外科決策樹</div></div>
+    <div class="box"><div class="box-t text-r">💪 韌性指數</div><div style="font-size:36px;font-weight:900;color:var(--red);text-align:center;margin:10px 0">74%</div><div class="pbar mb8"><div class="pfill p-red" style="width:74%"></div></div><div class="text-m" style="font-size:12px">挫折恢復速度 · 適應能力<br>本月持平，可加強更新能力</div></div>
+    <div class="box"><div class="box-t text-g">🔋 生命力指數</div><div style="font-size:36px;font-weight:900;color:var(--green);text-align:center;margin:10px 0">61%</div><div class="pbar mb8"><div class="pfill p-green" style="width:61%"></div></div><div class="text-m" style="font-size:12px">睡眠·運動·能量·專注<br>⚠️ 睡眠不足，建議優先改善</div></div>
+  </div>
+  <div class="box">
+    <div class="box-t">📈 本月成長曲線</div>
+    <div class="barchart" id="growth-chart"></div>
+  </div>
+  <div class="formula formula-gold">
+    最終定位：醫學生超級OS = 知識系統 × 記憶系統 × 推理系統 × 決策系統 × 生命系統<br>
+    <span style="font-size:11px;font-weight:400">培養的不是會考試的人，而是能在高度不確定環境下持續做出高品質判斷的醫師</span>
+  </div>
+</div>
+
+<!-- ══════════════ DECISION ══════════════ -->
+<div class="content" id="page-decision">
+  <div class="sh"><div><div class="st">⚡ 臨床決策OS</div><div class="ss">診斷樹 · 治療路徑 · 建立醫師決策能力</div></div></div>
+  <div class="alert a-b">💡 <b>核心智慧：</b>決策品質 = 資訊品質 × 判斷品質。所有決策都有成本，選機率最高的最合理方案，但同時考慮風險效益比。</div>
+  <div class="g2">
+    <div class="box"><div class="box-t">🏥 症狀→決策流程</div>
+      <div class="flow">
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">1</div><div class="fcontent"><div class="ftitle">主訴與病史採集</div><div class="fdesc">開放式問診 → OPQRST · SAMPLE · 系統回顧</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">2</div><div class="fcontent"><div class="ftitle">建立鑑別診斷</div><div class="fdesc">常見病先想 → 機率排序 → 危險疾病不漏</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">3</div><div class="fcontent"><div class="ftitle">選擇關鍵檢查</div><div class="fdesc">能改變診斷的檢查才做 → 不做無意義的全套</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">4</div><div class="fcontent"><div class="ftitle">確立診斷</div><div class="fdesc">整合症狀·徵象·Lab·影像 → 最可能診斷</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--blue-l);border-color:var(--blue);color:var(--blue)">5</div><div class="fcontent"><div class="ftitle">制定治療計畫</div><div class="fdesc">依指引 + 個人化 → 知情同意 → 執行</div></div></div>
+        <div class="fnode"><div class="fdot" style="background:var(--green-l);border-color:var(--green);color:var(--green)">6</div><div class="fcontent"><div class="ftitle">追蹤與修正</div><div class="fdesc">評估療效 → 有無副作用 → 修正計畫</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="box"><div class="box-t">⚡ 決策智慧金句</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="alert a-b">💡 「常見病常見，罕見病罕見」— 先想最可能的，再排除危險的</div>
+          <div class="alert a-g">💡 「能改變決策的檢查才做」— 不是每個症狀都需要全套檢查</div>
+          <div class="alert a-o">💡 「治療決策考慮三個P」— Prognosis（預後）· Preference（偏好）· Practicality（可行性）</div>
+          <div class="alert a-p">💡 「不確定時，先保安全」— Primum non nocere（首先不傷害）</div>
+        </div>
+      </div>
+      <div class="box mt8"><div class="box-t">📊 決策品質指標</div>
+        <table class="tbl">
+          <thead><tr><th>指標</th><th>定義</th><th>提升方法</th></tr></thead>
+          <tbody>
+            <tr><td class="fw7">正確率</td><td>診斷準確度</td><td>PBL + 考古題</td></tr>
+            <tr><td class="fw7">速度</td><td>決策所需時間</td><td>反覆案例練習</td></tr>
+            <tr><td class="fw7">完整性</td><td>不遺漏重要項目</td><td>Checklist使用</td></tr>
+            <tr><td class="fw7">效率</td><td>最少檢查達成診斷</td><td>Bayesian思維</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── Navigation ──
+const META = {
+  home:['🏠 醫學生超級OS — 系統總覽','從18歲醫學生到頂尖醫師的全生命週期作業系統'],
+  curriculum:['📅 六年課程地圖','北醫醫學系課程 × 國考對應 × 超級地圖整合'],
+  ability:['🔺 七層能力金字塔','從知道到智慧的完整升級路徑'],
+  english:['🔤 醫學英文OS','語言壓縮模型 · 字根字首字尾 · AI口說'],
+  memory:['🧠 超級記憶OS','長期記憶引擎 · Anki × 自適應學習'],
+  exam:['📋 考試OS','建立出題者模型 · 高頻考點 · 80/20法則'],
+  disease:['🗺 疾病地圖OS','8張系統地圖 · 因果鏈視覺化'],
+  pbl:['🔬 PBL推理OS','貝葉斯推理模型 · AI病人 · 臨床思維'],
+  decision:['⚡ 臨床決策OS','診斷樹 · 治療路徑 · 醫師決策能力'],
+  anxiety:['🧘 焦慮工程OS','預測編碼理論 · 降低不確定性'],
+  resilience:['💪 韌性工程OS','控制論模型 · 反脆弱訓練'],
+  vitality:['🔋 生命力OS','穩態模型 · 管理生理能量'],
+  research:['📊 醫學研究OS','EBM · 統計學 · AI論文助手'],
+  comm:['💬 醫病溝通OS','標準病人 · 同理心 · SPIKES'],
+  career:['🗺 職涯導航OS','PGY · 專科 · 薪資地圖 · 人生導航'],
+  ai:['🤖 五大AI引擎','即時解題 · 個人化指導 · 案例推理'],
+  dashboard:['📊 六大數據儀表板','每日更新 · 每週分析 · 每月成長曲線'],
+};
+
+function go(p){
+  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  if(pg)pg.classList.add('active');
+  const m=META[p]||['',''];
+  document.getElementById('tb-title').textContent=m[0];
+  document.getElementById('tb-sub').textContent=m[1];
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+p+"'"))n.classList.add('active');
+  });
+}
+
+// ── Year detail ──
+const yearData = {
+  1:{title:'大一課程詳解 — 基礎科學（理解生命）',rows:[
+    ['普通生物','生命運作原理、細胞、基因','生理·微免','穩態地圖·免疫地圖','理解生命原理',82],
+    ['普通化學','原子結構、化學鍵、反應','生化·藥理','代謝地圖','分子理解力',76],
+    ['有機化學','碳化合物、官能基、反應機制','生化·藥理','受體地圖基礎','分子結構力',71],
+    ['普通物理','力學、熱力學、電磁','生理','穩態地圖','流體與能量',68],
+    ['普通心理學','行為、認知、情緒','精神科','神經網路圖','行為理解',74],
+  ]},
+  2:{title:'大二課程詳解 — 基礎醫學（理解人體）',rows:[
+    ['解剖學','人體結構、神經、血管、肌肉','解剖','人體地圖','人體結構力',79],
+    ['組織學','顯微解剖、組織類型','病理','損傷地圖基礎','顯微結構力',73],
+    ['生理學','心血管、腎臟、內分泌調控','生理','穩態地圖','系統調控力',85],
+    ['生物化學','代謝途徑、酵素、ATP合成','生化','代謝地圖','能量理解力',78],
+  ]},
+  3:{title:'大三課程詳解 — 橋接醫學（疾病機制理解）',rows:[
+    ['病理學','細胞損傷、發炎、腫瘤、壞死','病理','損傷地圖',62,'orange'],
+    ['藥理學','受體系統、藥物機制、副作用','藥理','受體地圖',44,'red'],
+    ['微免學','T/B細胞、抗體、細菌病毒','微免','免疫地圖',71,'blue'],
+    ['PBL','案例推理、鑑別診斷','臨床推理','疾病地圖',68,'blue'],
+  ]},
+  4:{title:'大四課程詳解 — 臨床醫學（臨床思考）',rows:[
+    ['內科學','疾病診斷、治療、追蹤','內科','疾病地圖','疾病判斷力',81],
+    ['外科學','手術、急症、術後處置','外科','決策樹','決策能力',74],
+    ['婦產科學','妊娠、分娩、婦科疾病','婦產','妊娠時間軸','母胎照護力',70],
+    ['小兒科學','發育、感染、慢性病','小兒','發展時間軸','成長判斷力',72],
+  ]},
+  5:{title:'大五 — 臨床見習（Clerkship）',rows:[
+    ['見習輪訓','在各科跟診、問診、病歷','全科整合','全部地圖','臨床推理力',65],
+  ]},
+  6:{title:'大六 — 臨床實習（Internship）',rows:[
+    ['實習輪訓','獨立值班、臨床決策','全科整合','醫師地圖','臨床決策力',60],
+  ]},
+  0:{title:'國考衝刺 — 12張超級地圖整合通關',rows:[
+    ['12張超級地圖','全科知識整合','全部國考科目','全部地圖','通關能力',0],
+  ]},
+};
+
+function showYear(y){
+  document.querySelectorAll('.tl-item').forEach((el,i)=>{
+    el.classList.remove('active');
+    const maps=[1,2,3,4,5,6,0];
+    if(maps[i]===y)el.classList.add('active');
+  });
+  const d=yearData[y];if(!d)return;
+  const box=document.getElementById('year-detail');
+  const rows=d.rows.map(r=>{
+    const pct=typeof r[5]==='number'?r[5]:null;
+    const color=typeof r[5]==='string'?r[5]:'blue';
+    const progHtml=pct!==null?`<div class="pbar"><div class="pfill p-${color}" style="width:${pct}%"></div></div><span style="font-size:11px">${pct}%</span>`:'<span class="text-m">未開始</span>';
+    return `<tr><td class="fw7 text-b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="ktag kb">${r[3]}</span></td><td>${r[4]||'—'}</td><td>${progHtml}</td></tr>`;
+  }).join('');
+  box.innerHTML=`<div class="box-t">📚 ${d.title}</div><table class="tbl"><thead><tr><th>課程</th><th>核心內容</th><th>對應國考</th><th>超級地圖</th><th>核心能力</th><th>掌握度</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── Charts ──
+function renderChart(id,data,labels,colors){
+  const c=document.getElementById(id);if(!c)return;
+  c.innerHTML=data.map((d,i)=>`
+    <div class="bg">
+      <div class="bval" style="color:${colors?colors[i]:'var(--blue)'}">${d}%</div>
+      <div class="bar" style="height:${d}px;background:${colors?colors[i]:'var(--blue)'}"></div>
+      <div class="blbl">${labels[i]}</div>
+    </div>`).join('');
+}
+renderChart('growth-chart',
+  [72,74,71,76,74,73,78,76,79,78,80,82],
+  ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+  Array(12).fill('var(--blue)')
+);
+
+// ── Flashcard ──
+function flipFC(id){document.getElementById(id).classList.toggle('flip');}
+
+const engCards=[
+  {w:'Nephropathy',b:'<b>nephro</b>（腎）+ <b>pathy</b>（病變）= 腎病變<br>發音：/nɪˈfrɒpəθi/<br>相關：<span class="ktag kr">糖尿病腎病變</span><span class="ktag ko">高血壓腎病變</span>'},
+  {w:'Cardiomegaly',b:'<b>cardio</b>（心）+ <b>megaly</b>（腫大）= 心臟肥大<br>常見原因：高血壓、心衰竭、心肌病<br><span class="ktag kb">X光片可見</span>'},
+  {w:'Pneumonia',b:'<b>pneumo</b>（肺）+ <b>nia</b>（狀態）= 肺炎<br>最常見：Streptococcus pneumoniae<br><span class="ktag kg">非典型：Mycoplasma</span>'},
+];
+let eidx=0;
+function nextEng(){
+  eidx=(eidx+1)%engCards.length;
+  const fc=document.getElementById('fc-eng');fc.classList.remove('flip');
+  setTimeout(()=>{fc.querySelector('.fcword').textContent=engCards[eidx].w;fc.querySelector('.fcanswer').innerHTML=engCards[eidx].b;},120);
+}
+
+const memCards=[
+  {q:'糖尿病最常見的「大血管」併發症？',a:'<b>心血管疾病</b>（心肌梗塞·冠心症）<br>機制：動脈粥樣硬化加速<br><span class="ktag kr">最常見死因</span>'},
+  {q:'HbA1c 6.5% 代表什麼意義？',a:'近<b>3個月</b>的平均血糖<br>診斷標準之一（≥6.5%=糖尿病）<br><span class="ktag kb">無需空腹採血</span>'},
+  {q:'Metformin 的主要作用機制？',a:'<b>活化 AMPK</b> → 抑制肝臟糖質新生<br>也可增加胰島素敏感度<br><span class="ktag kg">不導致低血糖</span><span class="ktag ko">禁用：腎功能不全</span>'},
+];
+let midx=0;
+function nextMem(){
+  midx=(midx+1)%memCards.length;
+  const fc=document.getElementById('fc-mem');fc.classList.remove('flip');
+  setTimeout(()=>{fc.querySelector('.fcword').textContent=memCards[midx].q;fc.querySelector('.fcanswer').innerHTML=memCards[midx].a;},120);
+}
+
+// ── Quiz ──
+function ansQ(idx,correct){
+  const opts=document.querySelectorAll('#eqopts .qopt');
+  const exp=document.getElementById('eqexp');
+  opts.forEach((o,i)=>{
+    if(i===idx)o.classList.add(correct?'right':'wrong');
+    if(!correct&&i===1)o.classList.add('right');
+  });
+  if(exp)exp.classList.add('show');
+}
+
+// ── AI Chat ──
+let aiPrompt='你是醫學生超級OS的AI導師，用繁體中文，幫助醫學生理解醫學知識，從知識到推理到決策，回答200字內精準。';
+function selAI(el,name,greeting,prompt){
+  document.querySelectorAll('.t-card').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('ai-teacher-nm').textContent=el.querySelector('.t-emoji').textContent+' '+name;
+  document.getElementById('ai-chat-msgs').innerHTML=`<div class="msg ai"><div class="mavatar">🤖</div><div class="mbubble">${greeting}</div></div>`;
+  aiPrompt=prompt;
+}
+async function sendChat(){
+  const inp=document.getElementById('ai-chat-in');
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';
+  const msgs=document.getElementById('ai-chat-msgs');
+  msgs.innerHTML+=`<div class="msg u"><div class="mavatar" style="font-size:11px">👤</div><div class="mbubble">${txt}</div></div>`;
+  const lid='l'+Date.now();
+  msgs.innerHTML+=`<div class="msg ai" id="${lid}"><div class="mavatar">🤖</div><div class="mbubble" style="color:var(--text3)">思考中<span class="ldots"></span></div></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:aiPrompt,messages:[{role:'user',content:txt}]})
+    });
+    const d=await r.json();
+    const reply=d.content?.[0]?.text||'請稍後重試。';
+    document.getElementById(lid).querySelector('.mbubble').innerHTML=reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');
+  }catch(e){
+    document.getElementById(lid).querySelector('.mbubble').textContent='連線失敗，請重試。';
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+go('home');
+</script>
+</body>
+</html>
